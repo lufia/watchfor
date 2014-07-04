@@ -3,8 +3,10 @@ package main
 import (
 	"code.google.com/p/go.exp/fsnotify"
 	"code.google.com/p/go.net/websocket"
+	"flag"
 	"log"
 	"net/http"
+	"os"
 )
 
 type Event struct {
@@ -92,15 +94,23 @@ func (entry *Entry) Serve(ws *websocket.Conn) {
 }
 
 func main() {
+	flag.Parse()
+	args := flag.Args()
+	if len(args) < 1 {
+		flag.Usage()
+		os.Exit(1)
+	}
+
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
 	}
-	entry := NewEntry(w, "test.jpg")
+	entry := NewEntry(w, args[0])
 	go entry.WatchStart()
 	defer entry.WatchStop()
 
-	http.Handle("/page", http.Handler(pageContent))
+	page := NewPage(args[0])
+	http.Handle("/page", http.Handler(page))
 	http.Handle("/script", http.Handler(scriptContent))
 	http.Handle("/event", websocket.Handler(entry.Serve))
 	http.Handle("/files/", http.StripPrefix("/files/", http.FileServer(http.Dir("."))))

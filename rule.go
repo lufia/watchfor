@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -11,8 +10,11 @@ import (
 type Rule struct {
 	SrcExt  FileExt
 	DestExt FileExt
-	Command Command
+	Cmd     Command
 }
+
+// ルール定義上のコマンド。
+type Command string
 
 // pathの拡張子をターゲットの形に変換する。
 // 拡張子がなければ何もしない。
@@ -27,50 +29,15 @@ func (rule *Rule) Convert(path string) (target string, ok bool) {
 	return path[0:i] + rule.DestExt.String(), true
 }
 
-// ルール定義上のコマンド。
-// $varなど、シェル変数もそのまま保持する。
-type Command []string
-
-func (cmd Command) ExpandSrc(src SourceFile) []string {
-	args := make([]string, len(cmd))
-	for i, arg := range cmd {
-		args[i] = src.Expand(arg)
-	}
-	return args
-}
-
-// 変更があったソースファイル
-type SourceFile string
-
-// $var, ${var}等を展開した文字列を返す
-func (src SourceFile) Expand(s string) string {
-	return os.Expand(s, src.getenv)
-}
-
-func (src SourceFile) getenv(key string) string {
-	switch key {
-	case "source":
-		return string(src)
-	default:
-		return os.Getenv(key)
-	}
-}
-
-func (rule *Rule) Exec(file string) error {
-	if !rule.SrcExt.Match(file) {
-		return nil
-	}
-
-	src := SourceFile(file)
-	args := rule.Command.ExpandSrc(src)
-	cmd := exec.Command(args[0], args[1:]...)
-	if err := cmd.Start(); err != nil {
+// コマンドを実行してファイル生成
+func (rule *Rule) Exec(src, dest string) error {
+	if err := os.Setenv("source", src); err != nil {
 		return err
 	}
-	if err := cmd.Wait(); err != nil {
+	if err := os.Setenv("target", dest); err != nil {
 		return err
 	}
-	return nil
+	return System(rule.Cmd)
 }
 
 // 拡張子(.を含む)

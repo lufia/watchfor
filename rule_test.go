@@ -4,6 +4,26 @@ import (
 	"testing"
 )
 
+func TestFileExtMatch(t *testing.T) {
+	ext := FileExt(".c")
+	tab := []struct {
+		Path   string
+		Expect bool
+	}{
+		{"test.c", true},      // マッチ
+		{".c", true},          // マッチ
+		{"test.cc", false},    // 文字が多い
+		{"test.c.x", false},   // ファイル名の最後ではない
+		{"a.c/test.x", false}, // 最後のパスではない
+		{"test.", false},      // 拡張子が無い
+	}
+	for _, r := range tab {
+		if v := ext.Match(r.Path); v != r.Expect {
+			t.Errorf("Match(%v) = %v; want %v", r.Path, v, r.Expect)
+		}
+	}
+}
+
 func TestFileExtReplace(t *testing.T) {
 	ext := FileExt(".rc")
 	tab := []struct {

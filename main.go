@@ -44,6 +44,7 @@ func (entry *Entry) WatchStart() {
 			}
 			entry.addClient(c)
 		case ev := <-entry.w.Event:
+			log.Println(ev)
 			entry.notifyAll(ev.Name)
 		case err := <-entry.w.Error:
 			log.Fatal(err)

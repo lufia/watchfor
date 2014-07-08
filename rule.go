@@ -7,14 +7,24 @@ import (
 	"strings"
 )
 
-type FileMatcher interface {
-	Match(file string) bool
-}
-
 // ファイル変更時に実行されるルール
 type Rule struct {
-	Matcher FileMatcher
+	SrcExt  FileExt
+	DestExt FileExt
 	Command Command
+}
+
+// pathの拡張子をターゲットの形に変換する。
+// 拡張子がなければ何もしない。
+func (rule *Rule) Convert(path string) (target string, ok bool) {
+	if !rule.SrcExt.Match(path) {
+		return path, false
+	}
+	i := strings.LastIndex(path, rule.SrcExt.String())
+	if i < 0 {
+		panic("no file extension")
+	}
+	return path[0:i] + rule.DestExt.String(), true
 }
 
 // ルール定義上のコマンド。
@@ -47,7 +57,7 @@ func (src SourceFile) getenv(key string) string {
 }
 
 func (rule *Rule) Exec(file string) error {
-	if !rule.Matcher.Match(file) {
+	if !rule.SrcExt.Match(file) {
 		return nil
 	}
 
@@ -67,20 +77,13 @@ func (rule *Rule) Exec(file string) error {
 type FileExt string
 
 func (m FileExt) Match(file string) bool {
-	return filepath.Ext(file) == string(m)
+	return filepath.Ext(file) == m.String()
 }
 
-// pathの拡張子をFileExtの形に変換する。
-// 拡張子がなければ何もしない。
-func (m FileExt) Replace(path string) string {
-	ext := filepath.Ext(path)
-	if ext == "" {
-		return path
+func (m FileExt) String() string {
+	if len(m) > 0 && m[0] != '.' {
+		return "." + string(m)
+	} else {
+		return string(m)
 	}
-	s := string(m)
-	i := strings.LastIndex(path, ext)
-	if i < 0 {
-		panic("no file extension")
-	}
-	return path[0:i] + s
 }

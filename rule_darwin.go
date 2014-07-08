@@ -5,11 +5,11 @@ package main
 func NewRules() []*Rule {
 	return []*Rule{
 		&Rule{
-			Matcher: FileExt(".png"),
+			SrcExt:  FileExt(".png"),
 			Command: []string{"open", "-gF", "-a", "Preview", "$source"},
 		},
 		&Rule{
-			Matcher: FileExt(".puml"),
+			SrcExt:  FileExt(".puml"),
 			Command: []string{"make"},
 		},
 	}

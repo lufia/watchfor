@@ -16,23 +16,25 @@ type Event struct {
 
 type Entry struct {
 	w          *fsnotify.Watcher
-	file       string
+	dirs       []string
 	clients    []chan *Event
 	Subscribed chan chan *Event
 }
 
-func NewEntry(w *fsnotify.Watcher, file string) *Entry {
+func NewEntry(w *fsnotify.Watcher, dirs []string) *Entry {
 	return &Entry{
 		w:          w,
-		file:       file,
+		dirs:       dirs,
 		clients:    make([]chan *Event, 0, 10),
 		Subscribed: make(chan chan *Event),
 	}
 }
 
 func (entry *Entry) WatchStart() {
-	if err := entry.w.Watch(entry.file); err != nil {
-		log.Fatal(err)
+	for _, dir := range entry.dirs {
+		if err := entry.w.Watch(dir); err != nil {
+			log.Fatal(err)
+		}
 	}
 	for {
 		select {
@@ -42,9 +44,8 @@ func (entry *Entry) WatchStart() {
 			}
 			entry.addClient(c)
 		case ev := <-entry.w.Event:
-			if ev.IsModify() {
-				entry.notifyAll(ev.Name)
-			}
+			log.Println(ev)
+			entry.notifyAll(ev.Name)
 		case err := <-entry.w.Error:
 			log.Fatal(err)
 		}
@@ -93,19 +94,29 @@ func (entry *Entry) Serve(ws *websocket.Conn) {
 	}
 }
 
+var rule *Rule
+
 func main() {
+	cmd := flag.String("c", "", "cook command")
+	src := flag.String("f", "", "source extension")
+	dest := flag.String("t", "", "target extension")
 	flag.Parse()
 	args := flag.Args()
 	if len(args) < 1 {
 		flag.Usage()
 		os.Exit(1)
 	}
+	rule = &Rule{
+		Cmd:     Command(*cmd),
+		SrcExt:  FileExt(*src),
+		DestExt: FileExt(*dest),
+	}
 
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
 	}
-	entry := NewEntry(w, args[0])
+	entry := NewEntry(w, args)
 	go entry.WatchStart()
 	defer entry.WatchStop()
 

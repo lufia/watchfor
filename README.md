@@ -4,4 +4,8 @@ watchfor
 usage
 -----
 
-	watchfor [-r .] [-f .puml] [-t .png] [rules...]
+	watchfor -f .puml -t .png -c 'make $target' [dir ...]
+
+	environment variables are:
+		prereq
+		target

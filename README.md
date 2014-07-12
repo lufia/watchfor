@@ -1,6 +1,11 @@
 watchfor
 ========
 
+install
+-------
+
+	go get github.com/lufia/watchfor
+
 usage
 -----
 

@@ -14,7 +14,7 @@ options
 |-a addr|HTTPを待ち受けるアドレス|:8080|
 |-s .ext|監視するソースファイル拡張子|(未設定)|
 |-t .ext|監視するターゲットファイル拡張子|(未設定)|
-|-c command|-fで選択したファイルに変更があったとき実行するコマンド|(未設定)|
+|-c command|ソースファイルに変更があったとき実行するコマンド|(未設定)|
 
 description
 -----------
@@ -44,7 +44,7 @@ example
 変更があればPlantUMLで画像生成。
 ブラウザにはtest.pngの最新版を表示する。
 
-	watchfor -s .puml -t .png -c 'plantuml ...' .
+	watchfor -s .puml -t .png -c 'plantuml $source' .
 	http://localhost:8080/test.png
 
 portディレクトリを監視、通常のテキストファイルをブラウザに表示する。

@@ -1,6 +1,6 @@
-package main
+// +build: darwin dragonfly freebsd linux nacl netbsd openbsd
 
-// +build: darwin
+package main
 
 import (
 	"os/exec"

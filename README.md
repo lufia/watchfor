@@ -5,7 +5,6 @@ usage
 -----
 
 	watchfor [-s .ext] [-t .ext] [-c command] [dir]
-	watchfor -s .puml -t .png -c 'make $target' .
 
 options
 -------

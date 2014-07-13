@@ -152,9 +152,9 @@ TextView.prototype = {
 }
 
 window.onload = function(){
-	path = getTargetPath()
-	r = new Resource(path)
-	ctlr = new ResourceController(r)
+	var path = getTargetPath()
+	var r = new Resource(path)
+	var ctlr = new ResourceController(r)
 	ctlr.bind(function(type){
 		if(/^text\/x?html/.test(type))
 			return new DocumentView()

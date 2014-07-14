@@ -5,6 +5,7 @@ import (
 	"code.google.com/p/go.net/websocket"
 	"encoding/json"
 	"log"
+	"time"
 )
 
 type Event struct {
@@ -39,6 +40,7 @@ func NewEntry(dir string, rule *Rule) (*Entry, error) {
 }
 
 func (entry *Entry) eventLoop() {
+	que := make(map[string]*fsnotify.FileEvent)
 	for {
 		select {
 		case c := <-entry.Subscribed:
@@ -47,9 +49,14 @@ func (entry *Entry) eventLoop() {
 			if ev.IsDelete() {
 				continue
 			}
-			entry.notifyAll(ev.Name)
+			que[ev.Name] = ev
 		case err := <-entry.w.Error:
 			log.Fatal(err)
+		case <-time.After(500 * time.Millisecond):
+			for key, ev := range que {
+				entry.notifyAll(ev.Name)
+				delete(que, key)
+			}
 		}
 	}
 }

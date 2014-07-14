@@ -3,6 +3,7 @@ package main
 import (
 	"html/template"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -17,14 +18,20 @@ func NewPage(file string) *PageContent {
 }
 
 func (c PageContent) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	log.Print(req.Method, req.URL, req.RemoteAddr)
 	w.Header().Set("Content-Type", "text/html")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Cache-Control", "no-cache")
 	c.t.Execute(w, req.URL.Path[1:])
 }
 
 type ScriptContent string
 
 func (c ScriptContent) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	log.Print(req.Method, req.URL, req.RemoteAddr)
 	w.Header().Set("Content-Type", "application/javascript")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Cache-Control", "no-cache")
 	io.WriteString(w, string(c))
 }
 
@@ -59,10 +66,15 @@ Resource.prototype = {
 		if(type != '')
 			xhr.responseType = type
 		xhr.onload = function(e){
-			if(this.status != 200)
+			if(this.readyState != 4 || this.status != 200){
+				console.log('xhr.onload: readyState='+this.readyState, 'status='+this.status)
 				return
+			}
 			ctype = this.getResponseHeader('Content-Type')
 			onsuccess(ctype, this.response)
+		}
+		xhr.onerror = function(e){
+			console.log('xhr.onerror: '+this.statusText)
 		}
 		xhr.send()
 	}
@@ -76,17 +88,21 @@ var ResourceController = function(r){
 ResourceController.prototype = {
 	bind: function(onbind){
 		var c = this
-		r.request('HEAD', '', function(type, data){
+		this.r.request('HEAD', '', function(type, data){
 			c.v = onbind(type)
 			c.v.createView()
 			c.ws = new WebSocket(getEventURL(), ["event"])
 			c.ws.onopen = function(){
 				c.ws.onmessage = function(message){
+console.log('message:', message.data)
 					var m = JSON.parse(message.data)
 					if(m.path != c.r.path)
 						return
 					c.refresh()
 				}
+			}
+			c.ws.onerror = function(err){
+				console.log('ws.onerror:', err)
 			}
 			c.refresh()
 		})
@@ -100,8 +116,7 @@ ResourceController.prototype = {
 	}
 }
 
-var DocumentView = function(){
-}
+var DocumentView = function(){}
 DocumentView.prototype = {
 	getResponseType: function(){
 		return 'document'
@@ -117,8 +132,7 @@ DocumentView.prototype = {
 	}
 }
 
-var ImageView = function(){
-}
+var ImageView = function(){}
 ImageView.prototype = {
 	getResponseType: function(){
 		return 'blob'
@@ -134,8 +148,7 @@ ImageView.prototype = {
 	}
 }
 
-var TextView = function(){
-}
+var TextView = function(){}
 TextView.prototype = {
 	getResponseType: function(){
 		return ''
@@ -151,7 +164,7 @@ TextView.prototype = {
 	}
 }
 
-window.onload = function(){
+function ready() {
 	var path = getTargetPath()
 	var r = new Resource(path)
 	var ctlr = new ResourceController(r)
@@ -164,4 +177,8 @@ window.onload = function(){
 			return new TextView()
 	})
 }
+
+(function(){
+	document.addEventListener('DOMContentLoaded', ready, false)
+})()
 `)

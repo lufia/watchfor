@@ -7,6 +7,14 @@ import (
 	"net/http"
 )
 
+func AvoidCache(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Cache-Control", "no-cache")
+		h.ServeHTTP(w, r)
+	})
+}
+
 type PageContent struct {
 	t    *template.Template
 	file string
@@ -20,8 +28,6 @@ func NewPage(file string) *PageContent {
 func (c PageContent) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	log.Print(req.Method, req.URL, req.RemoteAddr)
 	w.Header().Set("Content-Type", "text/html")
-	w.Header().Set("Pragma", "no-cache")
-	w.Header().Set("Cache-Control", "no-cache")
 	c.t.Execute(w, req.URL.Path[1:])
 }
 
@@ -30,8 +36,6 @@ type ScriptContent string
 func (c ScriptContent) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	log.Print(req.Method, req.URL, req.RemoteAddr)
 	w.Header().Set("Content-Type", "application/javascript")
-	w.Header().Set("Pragma", "no-cache")
-	w.Header().Set("Cache-Control", "no-cache")
 	io.WriteString(w, string(c))
 }
 
@@ -94,12 +98,14 @@ ResourceController.prototype = {
 			c.ws = new WebSocket(getEventURL(), ["event"])
 			c.ws.onopen = function(){
 				c.ws.onmessage = function(message){
-console.log('message:', message.data)
 					var m = JSON.parse(message.data)
 					if(m.path != c.r.path)
 						return
 					c.refresh()
 				}
+			}
+			c.ws.onclose = function(){
+				console.log('ws.onclose')
 			}
 			c.ws.onerror = function(err){
 				console.log('ws.onerror:', err)

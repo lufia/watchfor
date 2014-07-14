@@ -52,7 +52,7 @@ func (entry *Entry) eventLoop() {
 			que[ev.Name] = ev
 		case err := <-entry.w.Error:
 			log.Fatal(err)
-		case <-time.After(500 * time.Millisecond):
+		case <-time.After(100 * time.Millisecond):
 			for key, ev := range que {
 				entry.notifyAll(ev.Name)
 				delete(que, key)

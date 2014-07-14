@@ -1,17 +1,17 @@
 watchfor
 ========
 
-install
--------
+INSTALLATION
+------------
 
 	go get github.com/lufia/watchfor
 
-usage
------
+SYNOPSIS
+--------
 
 	watchfor [-s .ext] [-t .ext] [-c command] [dir]
 
-options
+OPTIONS
 -------
 
 |option|説明|デフォルト|
@@ -21,7 +21,7 @@ options
 |-t .ext|監視するターゲットファイル拡張子|(未設定)|
 |-c command|ソースファイルに変更があったとき実行するコマンド|(未設定)|
 
-description
+DESCRIPTION
 -----------
 
 最新のファイルをブラウザ上に表示します。
@@ -42,7 +42,7 @@ cオプションのコマンドからは、特別に以下の環境変数を参�
 |source|変更のあったソースファイル名|
 |target|更新するべきターゲットファイル名|
 
-example
+EXAMPLE
 -------
 
 カレントディレクトリの.pumlファイルを監視して、
@@ -58,3 +58,11 @@ portディレクトリを監視、通常のテキストファイルをブラウ�
 	http://localhost:8080/port/README.md
 
 サブディレクトリは監視対象に含みません。
+
+BUGS
+----
+
+* ソースとターゲットファイルは拡張子を除いて同じ名前である必要があります。
+	* ターゲット生成に時間がかかる場合、コマンドの終わりを待つためです。
+* fsnotifyパッケージがまだ正式版ではないため動作しない環境があります。
+* 古いブラウザ等では動作しない可能性が非常に高いです。

@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func AvoidCache(h http.Handler) http.Handler {
+func AvoidToCache(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Pragma", "no-cache")
 		w.Header().Set("Cache-Control", "no-cache")

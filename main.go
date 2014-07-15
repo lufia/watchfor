@@ -50,10 +50,10 @@ func main() {
 
 	dir := args[0]
 	page := NewPage(dir)
-	http.Handle("/", AvoidCache(http.Handler(page)))
-	http.Handle("/script", AvoidCache(http.Handler(scriptContent)))
+	http.Handle("/", AvoidToCache(http.Handler(page)))
+	http.Handle("/script", AvoidToCache(http.Handler(scriptContent)))
 	http.Handle("/event", websocket.Handler(entry.Serve))
-	f := AvoidCache(http.FileServer(http.Dir(".")))
+	f := AvoidToCache(http.FileServer(http.Dir(".")))
 	http.Handle("/files/", http.StripPrefix("/files/", f))
 	if err := http.ListenAndServe(*addr, nil); err != nil {
 		log.Fatalf("ListenAndServe: %v", err)

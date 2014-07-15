@@ -97,7 +97,6 @@ func (entry *Entry) notifyAll(file string) {
 }
 
 func (entry *Entry) Serve(ws *websocket.Conn) {
-	log.Print(ws.Config().Location)
 	c := make(chan *Event, 1)
 	entry.Subscribed <- c
 	fout := json.NewEncoder(ws)

@@ -44,7 +44,7 @@ var pageTemplate = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <script src="/script"></script>
-<title>test</title>
+<title>{{ . }}</title>
 </head>
 <body>
 
@@ -150,18 +150,9 @@ DocumentView.prototype = {
 	},
 	mustKeep: function(node){
 		var tag = node.nodeName.toLowerCase()
-		if(tag == 'script'){
-			var src = node.getAttribute('src')
-			if(/^\//.test(src))
-				return true
-		}
-		if(tag == 'link'){
-			var rel = node.getAttribute('rel')
-			var href = node.getAttribute('href')
-			if(rel == 'stylesheet' && /^\//.test(href))
-				return true
-		}
-		return false
+		if(tag != 'script')
+			return false
+		return node.getAttribute('src') == '/script'
 	}
 }
 

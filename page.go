@@ -128,13 +128,40 @@ DocumentView.prototype = {
 		return 'document'
 	},
 	createView: function(){
-		var div = document.createElement('div')
-		div.id = 'view'
-		document.body.appendChild(div)
+		// do nothing
 	},
 	refreshView: function(data){
-		var v = document.querySelector('#view')
-		v.innerHTML = data.body.innerHTML
+		// ownerDocumentが異なるためDOM経由でまるごとコピーが難しい
+		// なので必要な要素だけ残して、その後に表示したいhtmlのheadを足す
+		this.cleanHeaders(document.head)
+		document.head.innerHTML += data.head.innerHTML
+
+		document.body.innerHTML = data.body.innerHTML
+	},
+	cleanHeaders: function(node){
+		var kept = 0
+		while(node.childNodes.length > kept){
+			if(this.mustKeep(node.childNodes[kept])){
+				kept++
+				continue
+			}
+			node.removeChild(node.childNodes[kept])
+		}
+	},
+	mustKeep: function(node){
+		var tag = node.nodeName.toLowerCase()
+		if(tag == 'script'){
+			var src = node.getAttribute('src')
+			if(/^\//.test(src))
+				return true
+		}
+		if(tag == 'link'){
+			var rel = node.getAttribute('rel')
+			var href = node.getAttribute('href')
+			if(rel == 'stylesheet' && /^\//.test(href))
+				return true
+		}
+		return false
 	}
 }
 

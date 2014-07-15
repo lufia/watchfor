@@ -131,12 +131,12 @@ DocumentView.prototype = {
 		// ownerDocumentが異なるためDOM経由でまるごとコピーが難しい
 		// なので必要な要素だけ残して、その後に表示したいhtmlのheadを足す
 		this.cleanHeaders(document.head)
-		this.assign(data.head, 'script', 'src')
-		this.assign(data.head, 'link', 'href')
+		this.relocate(data.head, 'script', 'src')
+		this.relocate(data.head, 'link', 'href')
 		document.head.innerHTML += data.head.innerHTML
 
 		document.body.innerHTML = data.body.innerHTML
-		this.assign(document.body, 'img', 'src')
+		this.relocate(document.body, 'img', 'src')
 	},
 	cleanHeaders: function(node){
 		var kept = 0
@@ -154,7 +154,7 @@ DocumentView.prototype = {
 			return false
 		return node.getAttribute('src') == '/script'
 	},
-	assign: function(node, name, attr){
+	relocate: function(node, name, attr){
 		var a = node.querySelectorAll(name)
 		for(var i = 0; i < a.length; i++){
 			var path = a[i].getAttribute(attr)

@@ -158,6 +158,8 @@ DocumentView.prototype = {
 		var a = node.querySelectorAll(name)
 		for(var i = 0; i < a.length; i++){
 			var path = a[i].getAttribute(attr)
+			if(path == null)
+				continue
 			if(/^[a-z]+:\/\//i.test(path))
 				continue
 			if(path.substr(0, 1) == '/')
